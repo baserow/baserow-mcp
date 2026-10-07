@@ -1,0 +1,28 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.baserow/baserow",
+  "title": "Baserow",
+  "description": "Read and change Baserow tables.",
+  "version": "0.1.0",
+  "repository": {
+    "url": "https://github.com/baserow/baserow-mcp",
+    "source": "github"
+  },
+  "websiteUrl": "https://baserow.io",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.baserow.io/mcp"
+    },
+    {
+      "type": "streamable-http",
+      "url": "https://{host}/mcp",
+      "variables": {
+        "host": {
+          "description": "Your self-hosted Baserow backend host, with a path prefix if it has one, for example baserow.example.com or example.com/baserow",
+          "isRequired": true
+        }
+      }
+    }
+  ]
+}
