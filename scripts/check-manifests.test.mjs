@@ -13,6 +13,8 @@ import {
 
 const SCHEMA_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "schemas");
 const URL = "https://api.baserow.io/mcp";
+const AGENT_SCHEMA = "https://agent-plugins.org/schemas/1.0.0";
+const REGISTRY_SCHEMA = "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json";
 
 function validManifests() {
   return {
@@ -23,11 +25,13 @@ function validManifests() {
     },
     claudeMarketplace: { name: "baserow", plugins: [{ name: "baserow", source: "./" }] },
     claudeMcp: { mcpServers: { baserow: { type: "http", url: "${user_config.mcp_url}" } } },
-    agentPlugin: { name: "baserow", version: "0.1.0", description: "d" },
-    agentMcp: { mcpServers: { baserow: { type: "streamable-http", url: URL } } },
+    agentPlugin: { $schema: `${AGENT_SCHEMA}/plugin.schema.json`, name: "baserow", version: "0.1.0", description: "d" },
+    agentMcp: { $schema: `${AGENT_SCHEMA}/mcp.schema.json`, mcpServers: { baserow: { type: "streamable-http", url: URL } } },
     codexMarketplace: { name: "baserow", plugins: [{ name: "baserow" }] },
     gemini: { name: "baserow", version: "0.1.0", mcpServers: { baserow: { httpUrl: URL } } },
     registry: {
+      $schema: REGISTRY_SCHEMA,
+      description: "d",
       name: "io.baserow/baserow",
       version: "0.1.0",
       remotes: [{ type: "streamable-http", url: URL }],
@@ -81,11 +85,18 @@ test("a wrong plugin name in a marketplace is reported", () => {
   assert.match(checkSync(m).join("\n"), /marketplace\.json: plugins must be exactly \[baserow\]/);
 });
 
+test("valid manifests pass the schemas", async () => {
+  assert.deepEqual(await checkSchemas(validManifests(), SCHEMA_DIR), []);
+});
+
 test("an Agent Plugins mcp.json without type fails the schema", async () => {
   const m = validManifests();
   delete m.agentMcp.mcpServers.baserow.type;
   const errors = await checkSchemas(m, SCHEMA_DIR);
-  assert.ok(errors.some((e) => e.startsWith("mcp.json:")), errors.join("\n"));
+  assert.ok(
+    errors.some((e) => /^mcp\.json: \/mcpServers\/baserow must have required property 'type'/.test(e)),
+    errors.join("\n"),
+  );
 });
 
 async function repoWithSkill(name, body) {

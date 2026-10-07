@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test scripts/",
+    "test": "node --test scripts/*.test.mjs",
     "check": "node scripts/check-manifests.mjs"
   },
   "devDependencies": {
