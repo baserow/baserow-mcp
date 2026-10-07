@@ -3,6 +3,7 @@
 //   plugin.schema.json  https://agent-plugins.org/schemas/1.0.0/plugin.schema.json
 //   mcp.schema.json     https://agent-plugins.org/schemas/1.0.0/mcp.schema.json
 //   server.schema.json  https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json
+import { realpathSync } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -97,6 +98,11 @@ export function checkSync(m) {
       errors.push(`${FILES[key]}: name must be "${SERVER_NAME}", got "${m[key].name}"`);
     }
   }
+  for (const key of ["claudeMarketplace", "codexMarketplace"]) {
+    if (m[key] && m[key].name !== SERVER_NAME) {
+      errors.push(`${FILES[key]}: name must be "${SERVER_NAME}", got "${m[key].name}"`);
+    }
+  }
   return errors;
 }
 
@@ -166,7 +172,7 @@ export async function runAll(root) {
   ];
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const root = path.resolve(process.argv[2] ?? ".");
   const errors = await runAll(root);
   for (const e of errors) console.error(e);

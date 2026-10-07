@@ -66,7 +66,7 @@ test("a missing SaaS URL is reported with its file", () => {
 
 test("the SaaS URL must be https and end in /mcp", () => {
   const m = validManifests();
-  for (const key of ["agentMcp"]) m[key].mcpServers.baserow.url = "http://api.baserow.io/mcp";
+  m.agentMcp.mcpServers.baserow.url = "http://api.baserow.io/mcp";
   m.claudePlugin.userConfig.mcp_url.default = "http://api.baserow.io/mcp";
   m.gemini.mcpServers.baserow.httpUrl = "http://api.baserow.io/mcp";
   m.registry.remotes[0].url = "http://api.baserow.io/mcp";
@@ -83,6 +83,32 @@ test("a wrong plugin name in a marketplace is reported", () => {
   const m = validManifests();
   m.claudeMarketplace.plugins[0].name = "baserow-poc";
   assert.match(checkSync(m).join("\n"), /marketplace\.json: plugins must be exactly \[baserow\]/);
+});
+
+test("a wrong .mcp.json server set is reported", () => {
+  const m = validManifests();
+  m.claudeMcp.mcpServers = { other: { type: "http", url: URL } };
+  assert.match(checkSync(m).join("\n"), /\.mcp\.json: servers must be exactly \[baserow\]/);
+});
+
+test("a wrong plugin name in the Codex marketplace is reported", () => {
+  const m = validManifests();
+  m.codexMarketplace.plugins[0].name = "other";
+  assert.match(checkSync(m).join("\n"), /\.agents\/plugins\/marketplace\.json: plugins must be exactly \[baserow\]/);
+});
+
+test("a wrong manifest name is reported", () => {
+  const m = validManifests();
+  m.gemini.name = "other";
+  assert.match(checkSync(m).join("\n"), /gemini-extension\.json: name must be "baserow", got "other"/);
+});
+
+test("a wrong marketplace name is reported", () => {
+  for (const key of ["claudeMarketplace", "codexMarketplace"]) {
+    const m = validManifests();
+    m[key].name = "other";
+    assert.match(checkSync(m).join("\n"), /marketplace\.json: name must be "baserow", got "other"/);
+  }
 });
 
 test("valid manifests pass the schemas", async () => {
@@ -125,4 +151,22 @@ test("missing manifest files are reported by path", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "empty-"));
   const { errors } = await loadManifests(root);
   assert.ok(errors.includes("gemini-extension.json: file missing"), errors.join("\n"));
+});
+
+test("invalid JSON is reported by path", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "badjson-"));
+  await writeFile(path.join(root, "server.json"), "{ nope");
+  const { errors } = await loadManifests(root);
+  assert.ok(errors.some((e) => /^server\.json: invalid JSON/.test(e)), errors.join("\n"));
+});
+
+test("a skill without front matter fails", async () => {
+  const root = await repoWithSkill("baserow-basics", "Body only\n");
+  assert.deepEqual(await checkSkills(root), ["skills/baserow-basics/SKILL.md: front matter missing"]);
+});
+
+test("an empty skills folder is reported", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "noskills-"));
+  await mkdir(path.join(root, "skills"));
+  assert.deepEqual(await checkSkills(root), ["skills/: no skills"]);
 });
