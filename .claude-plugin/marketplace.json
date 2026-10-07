@@ -1,5 +1,6 @@
 {
   "name": "baserow",
+  "description": "Read and change Baserow tables from your AI agent through Baserow's MCP server.",
   "owner": { "name": "Baserow", "url": "https://baserow.io" },
   "plugins": [
     {
