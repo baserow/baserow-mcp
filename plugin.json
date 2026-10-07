@@ -1,0 +1,10 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "baserow",
+  "version": "0.1.0",
+  "description": "Read and change Baserow tables from your AI agent through Baserow's MCP server.",
+  "author": { "name": "Baserow", "url": "https://baserow.io" },
+  "homepage": "https://baserow.io",
+  "repository": "https://github.com/baserow/baserow-mcp",
+  "license": "MIT"
+}
