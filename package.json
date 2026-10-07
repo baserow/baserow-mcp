@@ -1,0 +1,14 @@
+{
+  "name": "baserow-mcp",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test scripts/",
+    "check": "node scripts/check-manifests.mjs"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  },
+  "engines": { "node": ">=22" }
+}
