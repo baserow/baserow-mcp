@@ -1,0 +1,11 @@
+{
+  "name": "baserow",
+  "version": "0.1.0",
+  "description": "Read and change Baserow tables from your AI agent through Baserow's MCP server.",
+  "contextFileName": "GEMINI.md",
+  "mcpServers": {
+    "baserow": {
+      "httpUrl": "https://api.baserow.io/mcp"
+    }
+  }
+}
