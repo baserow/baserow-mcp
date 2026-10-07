@@ -15,7 +15,7 @@ The server URL is `https://api.baserow.io/mcp`.
 /plugin install baserow@baserow
 ```
 
-Keep the default URL when asked. Then run `/mcp`, pick `baserow` and sign in.
+Keep the default URL when asked. Then run `/mcp`, pick `plugin:baserow:baserow` and sign in.
 
 ### Claude.ai and Claude Desktop
 
@@ -50,7 +50,7 @@ gemini extensions install https://github.com/baserow/baserow-mcp
 ### Any other agent
 
 ```
-npx add-mcp https://api.baserow.io/mcp
+npx add-mcp https://api.baserow.io/mcp -n baserow
 npx skills add baserow/baserow-mcp
 ```
 
@@ -65,13 +65,13 @@ Your reverse proxy must send `/mcp`, `/oauth/` and `/.well-known/` to the Basero
 The quickest way for any agent:
 
 ```
-npx add-mcp https://baserow.example.com/mcp
+npx add-mcp https://baserow.example.com/mcp -n baserow
 npx skills add baserow/baserow-mcp
 ```
 
 Per agent:
 
-- **Claude Code**: install the plugin as above and enter your URL when asked. To change it later, run `/plugin`, open `baserow` and edit the setting.
+- **Claude Code**: install the plugin as above and enter your URL when asked. To change it later, run `claude plugin configure baserow@baserow`.
 - **Claude.ai and Claude Desktop**: add a custom connector with your URL.
 - **ChatGPT**: add a custom MCP server with your URL.
 - **Codex**: `codex mcp add baserow --url https://baserow.example.com/mcp`, then `codex mcp login baserow`.
@@ -108,16 +108,22 @@ Your connected apps are listed under Settings → MCP server in Baserow. Disconn
 
 ## Endpoint keys (scripts)
 
-Older Baserow versions and scripts can use an endpoint key from Settings → MCP server → Endpoint keys. The plugin doesn't set this up. Add the server by hand with the header `Authorization: Bearer <key>`, for example:
+Older Baserow versions only accept an endpoint key, and the plugin doesn't set this up. Copy the endpoint URL from Settings → MCP server. It ends in `/sse` and contains your key. Add it by hand:
 
 ```
-npx add-mcp https://baserow.example.com/mcp -h "Authorization: Bearer <key>"
+npx add-mcp "<endpoint url>" -t sse -n baserow
+```
+
+Baserow versions with OAuth for MCP also accept the key as a header on `/mcp`:
+
+```
+npx add-mcp https://baserow.example.com/mcp -n baserow -h "Authorization: Bearer <key>"
 ```
 
 ## Troubleshooting
 
 - **A tool is missing, or no databases are listed.** The connection only has the workspace and tools you picked at sign-in. Reconnect and pick again.
-- **"Incompatible auth server" or the sign-in never starts.** Your Baserow version doesn't support OAuth for MCP yet. Update Baserow, or use an endpoint key.
+- **The sign-in never starts, or the client says the server doesn't support OAuth or client registration.** Your Baserow version doesn't support OAuth for MCP yet. Update Baserow, or use an endpoint key as described in [Endpoint keys](#endpoint-keys-scripts).
 - **The connection fails with a URL you typed.** Copy the URL exactly as Settings → MCP server shows it. It ends in `/mcp`, with no trailing slash.
 - **Two Baserow servers in Claude Code.** If you also added a `baserow` server by hand with the same URL, Claude Code shows only that one and hides the plugin's. Keep one: `claude mcp remove baserow` removes the hand-added server.
 
