@@ -21,9 +21,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: scripts/package-lock.json
       - run: npm ci
+        working-directory: scripts
       - run: npm test
+        working-directory: scripts
       - run: npm run check
+        working-directory: scripts
 
       - name: Check the tag matches the manifests
         env:
