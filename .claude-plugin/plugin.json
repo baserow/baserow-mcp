@@ -1,7 +1,7 @@
 {
   "name": "baserow",
   "displayName": "Baserow",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Read and change Baserow tables from your AI agent through Baserow's MCP server.",
   "author": { "name": "Baserow", "url": "https://baserow.io" },
   "homepage": "https://baserow.io",
@@ -12,8 +12,7 @@
       "type": "string",
       "title": "Baserow MCP URL",
       "description": "Keep the default for baserow.io. For self-hosted Baserow, copy it from Settings → MCP server. It ends in /mcp.",
-      "default": "https://api.baserow.io/mcp",
-      "required": true
+      "default": "https://api.baserow.io/mcp"
     }
   },
   "mcpServers": {

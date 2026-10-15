@@ -3,7 +3,7 @@
   "name": "io.baserow/baserow",
   "title": "Baserow",
   "description": "Read and change Baserow tables.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "repository": {
     "url": "https://github.com/baserow/baserow-mcp",
     "source": "github"
@@ -32,10 +32,10 @@
     },
     {
       "type": "streamable-http",
-      "url": "https://{host}/mcp",
+      "url": "https://{baserow_host}/mcp",
       "variables": {
-        "host": {
-          "description": "Your self-hosted Baserow backend host, with a path prefix if it has one, for example baserow.example.com or example.com/baserow",
+        "baserow_host": {
+          "description": "Your self-hosted Baserow backend host, for example baserow.example.com",
           "isRequired": true
         }
       }
