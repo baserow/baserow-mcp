@@ -4,7 +4,7 @@
 //   mcp.schema.json     https://agent-plugins.org/schemas/1.0.0/mcp.schema.json
 //   server.schema.json  https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json
 import { realpathSync } from "node:fs";
-import { readFile, readdir } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Ajv from "ajv";
@@ -22,6 +22,7 @@ export const FILES = {
   agentPlugin: "plugin.json",
   agentMcp: "mcp.json",
   codexMarketplace: ".agents/plugins/marketplace.json",
+  cursorPlugin: ".cursor-plugin/plugin.json",
   gemini: "gemini-extension.json",
   registry: "server.json",
 };
@@ -92,6 +93,7 @@ export function checkSync(m) {
   const versions = {
     [FILES.claudePlugin]: m.claudePlugin?.version,
     [FILES.agentPlugin]: m.agentPlugin?.version,
+    [FILES.cursorPlugin]: m.cursorPlugin?.version,
     [FILES.gemini]: m.gemini?.version,
     [FILES.registry]: m.registry?.version,
   };
@@ -124,7 +126,7 @@ export function checkSync(m) {
     ...exactly(FILES.claudeMarketplace, "plugins", pluginNames(m.claudeMarketplace?.plugins)),
     ...exactly(FILES.codexMarketplace, "plugins", pluginNames(m.codexMarketplace?.plugins)),
   );
-  for (const key of ["claudePlugin", "agentPlugin", "gemini", "claudeMarketplace", "codexMarketplace"]) {
+  for (const key of ["claudePlugin", "agentPlugin", "cursorPlugin", "gemini", "claudeMarketplace", "codexMarketplace"]) {
     if (m[key] && m[key].name !== SERVER_NAME) {
       errors.push(`${FILES[key]}: name must be "${SERVER_NAME}", got "${m[key].name}"`);
     }
@@ -230,6 +232,25 @@ export async function checkSkills(root) {
   return errors;
 }
 
+// Every logo and file a listing points at must exist in the repo.
+export async function checkAssets(m, root) {
+  const ui = m.agentPlugin?.extensions?.["com.openai"]?.interface ?? {};
+  const refs = [
+    ...["logo", "logoDark", "composerIcon", "composerIconDark"].map((k) => [FILES.agentPlugin, `interface.${k}`, ui[k]]),
+    ...["logo", "mcpServers", "skills"].map((k) => [FILES.cursorPlugin, k, m.cursorPlugin?.[k]]),
+  ];
+  const errors = [];
+  for (const [file, key, rel] of refs) {
+    if (typeof rel !== "string") continue;
+    try {
+      await access(path.join(root, rel));
+    } catch {
+      errors.push(`${file}: ${key} ${rel} not found`);
+    }
+  }
+  return errors;
+}
+
 export async function runAll(root) {
   const { manifests, errors } = await loadManifests(root);
   const schemaDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "schemas");
@@ -245,6 +266,7 @@ export async function runAll(root) {
     ...checkSync(manifests),
     ...(readme === undefined || saasUrl === undefined ? [] : checkReadme(readme, saasUrl)),
     ...(await checkSchemas(manifests, schemaDir)),
+    ...(await checkAssets(manifests, root)),
     ...(await checkSkills(root)),
   ];
 }

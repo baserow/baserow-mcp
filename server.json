@@ -9,6 +9,22 @@
     "source": "github"
   },
   "websiteUrl": "https://baserow.io",
+  "icons": [
+    {
+      "src": "https://baserow.io/img/favicon_48.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "48x48"
+      ]
+    },
+    {
+      "src": "https://baserow.io/img/favicon_192.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "192x192"
+      ]
+    }
+  ],
   "remotes": [
     {
       "type": "streamable-http",

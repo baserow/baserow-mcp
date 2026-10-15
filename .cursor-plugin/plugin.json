@@ -1,0 +1,14 @@
+{
+  "name": "baserow",
+  "displayName": "Baserow",
+  "description": "Read and change Baserow tables from your AI agent through Baserow's MCP server.",
+  "version": "0.1.0",
+  "author": { "name": "Baserow", "url": "https://baserow.io" },
+  "homepage": "https://baserow.io",
+  "repository": "https://github.com/baserow/baserow-mcp",
+  "license": "MIT",
+  "keywords": ["baserow", "database", "no-code", "tables", "mcp"],
+  "logo": "assets/baserow-logomark.svg",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}
