@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  checkAssets,
   checkReadme,
   checkSync,
   checkSchemas,
@@ -30,6 +31,7 @@ function validManifests() {
     agentPlugin: { $schema: `${AGENT_SCHEMA}/plugin.schema.json`, name: "baserow", version: "0.1.0", description: "d" },
     agentMcp: { $schema: `${AGENT_SCHEMA}/mcp.schema.json`, mcpServers: { baserow: { type: "streamable-http", url: URL } } },
     codexMarketplace: { name: "baserow", plugins: [{ name: "baserow" }] },
+    cursorPlugin: { name: "baserow", version: "0.1.0", mcpServers: "./.mcp.json" },
     gemini: { name: "baserow", version: "0.1.0", mcpServers: { baserow: { httpUrl: URL } } },
     registry: {
       $schema: REGISTRY_SCHEMA,
@@ -254,4 +256,14 @@ test("a skill with CRLF line endings, a BOM and a quoted name passes", async (t)
 test("an empty description doesn't borrow the next line", async (t) => {
   const root = await repoWithSkill(t, "baserow-basics", "---\nname: baserow-basics\ndescription:\nlicense: MIT\n---\n");
   assert.deepEqual(await checkSkills(root), ["skills/baserow-basics/SKILL.md: description missing"]);
+});
+
+test("a listing logo that doesn't exist is reported", async (t) => {
+  const root = await tempDir(t, "assets-");
+  await mkdir(path.join(root, "assets"));
+  await writeFile(path.join(root, "assets", "logo.png"), "");
+  await writeFile(path.join(root, ".mcp.json"), "{}");
+  const m = validManifests();
+  m.agentPlugin.extensions = { "com.openai": { interface: { logo: "./assets/logo.png", composerIcon: "./assets/missing.svg" } } };
+  assert.deepEqual(await checkAssets(m, root), ["plugin.json: interface.composerIcon ./assets/missing.svg not found"]);
 });

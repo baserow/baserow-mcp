@@ -6,5 +6,38 @@
   "author": { "name": "Baserow", "url": "https://baserow.io" },
   "homepage": "https://baserow.io",
   "repository": "https://github.com/baserow/baserow-mcp",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "baserow",
+    "database",
+    "no-code",
+    "tables",
+    "mcp"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Baserow",
+        "shortDescription": "Read and change Baserow tables",
+        "longDescription": "Connect a Baserow workspace to read and change table data. Look up databases, tables and fields, search and list rows, and create, update or delete rows. You sign in with your Baserow account, pick one workspace and choose which tools the agent may use; only read tools are ticked by default. Works with baserow.io; for self-hosted Baserow, add your own server URL as a custom MCP server.",
+        "developerName": "Baserow",
+        "category": "Productivity",
+        "capabilities": [
+          "Read",
+          "Write"
+        ],
+        "websiteURL": "https://baserow.io",
+        "supportURL": "https://community.baserow.io",
+        "privacyPolicyURL": "https://baserow.io/privacy-policy",
+        "termsOfServiceURL": "https://baserow.io/terms-and-conditions",
+        "defaultPrompt": [
+          "List the tables in my Baserow workspace and what each one holds.",
+          "Find the rows in my Tasks table that are overdue.",
+          "Add a row to my Contacts table for Jane Doe, jane@example.com."
+        ],
+        "composerIcon": "./assets/baserow-logomark.svg",
+        "logo": "./assets/baserow-logomark.png"
+      }
+    }
+  }
 }
