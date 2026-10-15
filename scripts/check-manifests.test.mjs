@@ -231,6 +231,7 @@ const gooseLink = (url) => `goose://extension?url=${encodeURIComponent(url)}&id=
 test("a README that matches the SaaS URL passes", () => {
   const readme = [
     `Use \`${URL}\` or \`https://baserow.example.com/mcp\`.`,
+    "See [the docs](https://github.com/baserow/baserow/blob/develop/docs/installation/mcp-oauth.md).",
     `[Add to Cursor](${cursorLink(URL)})`,
     `[Add to VS Code](${vscodeLink(URL)})`,
     `[Add to Goose](${gooseLink(URL)})`,
