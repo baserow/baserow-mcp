@@ -4,20 +4,6 @@ Connect your AI agent to [Baserow](https://baserow.io). Your agent can read and 
 
 This repo installs Baserow's MCP server and a short skill that teaches the agent how to use it. It works with Claude, ChatGPT, Codex, Cursor, VS Code, GitHub Copilot, Gemini CLI, OpenCode, Zed, Goose, Windsurf, Pi and other agents.
 
-## Tools
-
-| Tool | What it does | Changes data |
-|---|---|---|
-| `list_databases` | Lists the databases in the workspace | No |
-| `list_tables` | Lists tables, optionally for one database | No |
-| `get_table_schema` | Returns the fields of one or more tables | No |
-| `list_table_rows` | Lists rows, with search and pagination | No |
-| `create_rows` | Creates rows | Yes |
-| `update_rows` | Updates rows by ID | Yes |
-| `delete_rows` | Deletes rows by ID | Yes |
-
-You pick the tools when you sign in. Only the read tools are ticked on a first connection.
-
 ## Your server URL
 
 - **baserow.io**: `https://api.baserow.io/mcp`
@@ -104,7 +90,7 @@ The Add to Cursor and Add to VS Code links use the baserow.io URL.
 
 ## Signing in
 
-The first time your agent uses Baserow, it opens a Baserow page in your browser. Sign in, pick the workspace and tick the tools the agent may use. To change either, reconnect the server from your agent's MCP settings.
+The first time your agent uses Baserow, it opens a Baserow page in your browser. Sign in, pick the workspace and tick the tools the agent may use. Read tools let the agent browse databases, tables and rows; write tools let it create, update and delete rows. Only the read tools are ticked on a first connection. To change the workspace or tools, reconnect the server from your agent's MCP settings.
 
 Your connected apps are listed under Settings → MCP server in Baserow. Disconnect one there to revoke its access.
 
