@@ -15,5 +15,11 @@
       "default": "https://api.baserow.io/mcp",
       "required": true
     }
+  },
+  "mcpServers": {
+    "baserow": {
+      "type": "http",
+      "url": "${user_config.mcp_url}"
+    }
   }
 }
