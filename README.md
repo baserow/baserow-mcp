@@ -13,14 +13,12 @@ The examples below use the baserow.io URL. On self-hosted Baserow, use your own 
 
 ## Quick start
 
-For agents without their own install below, pick them with `-a`:
-
 ```
-npx add-mcp https://api.baserow.io/mcp -n baserow -g -a cursor -a codex
+npx add-mcp https://api.baserow.io/mcp -n baserow -g
 npx skills add baserow/baserow-mcp
 ```
 
-`npx add-mcp list-agents` lists the agent names. `-g` writes to your user config; without it, `add-mcp` writes config files into the current folder. `skills add` copies the `baserow-basics` skill into your agents' skill folders. On self-hosted Baserow, run `skills add` too, since only the plugins below include the skill.
+`add-mcp` finds the agents you have installed and asks which ones to add Baserow to. Untick Claude Desktop if it's listed and add Baserow there as a [custom connector](#claudeai-and-claude-desktop) instead. `skills add` copies the `baserow-basics` skill into your agents' skill folders. On self-hosted Baserow, run `skills add` too, since only the plugins below include the skill.
 
 ## Self-hosted requirements
 
