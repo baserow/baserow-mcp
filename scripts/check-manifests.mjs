@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import Ajv from "ajv";
 import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
+import { parse as parseYaml } from "yaml";
 
 export const SERVER_NAME = "baserow";
 const CLAUDE_URL = "${user_config.mcp_url}";
@@ -230,11 +231,14 @@ export async function checkSkills(root) {
       errors.push(`${file}: front matter missing`);
       continue;
     }
-    const field = (k) =>
-      front[1]
-        .match(new RegExp(`^${k}:[ \\t]*(.*)$`, "m"))?.[1]
-        .trim()
-        .replace(/^(["'])(.*)\1$/, "$2");
+    let meta;
+    try {
+      meta = parseYaml(front[1]);
+    } catch (e) {
+      errors.push(`${file}: front matter isn't valid YAML (${e.message.split("\n")[0]})`);
+      continue;
+    }
+    const field = (k) => (typeof meta?.[k] === "string" ? meta[k].trim() : undefined);
     const name = field("name");
     if (!name) errors.push(`${file}: name missing`);
     else if (name !== dir) errors.push(`${file}: name "${name}" must match folder "${dir}"`);
@@ -243,12 +247,15 @@ export async function checkSkills(root) {
   return errors;
 }
 
-// Every logo and file a listing points at must exist in the repo.
+// Every logo, file and plugin folder a manifest points at must exist in the repo.
 export async function checkAssets(m, root) {
   const ui = m.agentPlugin?.extensions?.["com.openai"]?.interface ?? {};
   const refs = [
     ...["logo", "logoDark", "composerIcon", "composerIconDark"].map((k) => [FILES.agentPlugin, `interface.${k}`, ui[k]]),
     ...["logo", "mcpServers", "skills"].map((k) => [FILES.cursorPlugin, k, m.cursorPlugin?.[k]]),
+    [FILES.gemini, "contextFileName", m.gemini?.contextFileName],
+    [FILES.claudeMarketplace, "plugins[0].source", m.claudeMarketplace?.plugins?.[0]?.source],
+    [FILES.codexMarketplace, "plugins[0].source.path", m.codexMarketplace?.plugins?.[0]?.source?.path],
   ];
   const errors = [];
   for (const [file, key, rel] of refs) {

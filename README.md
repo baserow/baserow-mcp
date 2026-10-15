@@ -150,7 +150,7 @@ The key gives full access to its workspace. `-g` writes it to your user config i
 
 ## Developing
 
-Run `npm install`, then `npm test` and `npm run check`. CI runs the same checks.
+In `scripts/`, run `npm install`, then `npm test` and `npm run check`. CI runs the same checks. The tooling lives there so plugin installs don't install its dependencies.
 
 The Claude Code plugin declares its server in `.claude-plugin/plugin.json`, so it can use the URL you enter. `.mcp.json` holds the baserow.io URL for other tools that read Claude-format plugins, such as GitHub Copilot CLI and Cursor.
 

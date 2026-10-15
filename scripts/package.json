@@ -1,0 +1,17 @@
+{
+  "name": "baserow-mcp",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test *.test.mjs",
+    "check": "node check-manifests.mjs .."
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "yaml": "^2.9.1"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
