@@ -17,8 +17,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: scripts/package-lock.json
+      # The tooling lives in scripts/ so plugin installs don't run npm ci on it.
       - run: npm ci
+        working-directory: scripts
       - run: npm test
+        working-directory: scripts
       - run: npm run check
+        working-directory: scripts
       - name: Validate Claude Code plugin
         run: npx -y @anthropic-ai/claude-code@2.1.293 plugin validate .

@@ -11,6 +11,7 @@ import {
   checkSchemas,
   checkSkills,
   loadManifests,
+  runAll,
 } from "./check-manifests.mjs";
 
 const SCHEMA_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "schemas");
@@ -289,4 +290,21 @@ test("registry URL variables must match the URL", () => {
   const errors = checkSync(m).join("\n");
   assert.match(errors, /uses \{baserow_host\}, which isn't in its variables/);
   assert.match(errors, /declares host, which its URL doesn't use/);
+});
+
+test("front matter that isn't valid YAML fails", async (t) => {
+  const root = await repoWithSkill(t, "baserow-basics", "---\nname: baserow-basics\ndescription: Use when: the user asks\n---\n");
+  assert.match((await checkSkills(root)).join("\n"), /front matter isn't valid YAML/);
+});
+
+test("a marketplace source that doesn't exist is reported", async (t) => {
+  const root = await tempDir(t, "source-");
+  const m = validManifests();
+  m.claudeMarketplace.plugins[0].source = "./plugins/baserow";
+  assert.ok((await checkAssets(m, root)).includes(".claude-plugin/marketplace.json: plugins[0].source ./plugins/baserow not found"));
+});
+
+test("the repo itself passes every check", async () => {
+  const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+  assert.deepEqual(await runAll(root), []);
 });
