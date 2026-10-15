@@ -226,16 +226,17 @@ test("malformed marketplace plugins are reported without crashing", () => {
 });
 
 const cursorLink = (url) =>
-  `cursor://anysphere.cursor-deeplink/mcp/install?name=baserow&config=${Buffer.from(JSON.stringify({ url })).toString("base64")}`;
-const vscodeLink = (url) => `vscode:mcp/install?${encodeURIComponent(JSON.stringify({ name: "baserow", type: "http", url }))}`;
-const gooseLink = (url) => `goose://extension?url=${encodeURIComponent(url)}&id=baserow`;
+  `https://cursor.com/install-mcp?name=baserow&config=${Buffer.from(JSON.stringify({ url })).toString("base64")}`;
+const vscodeLink = (url) =>
+  `https://vscode.dev/redirect/mcp/install?name=baserow&config=${encodeURIComponent(JSON.stringify({ type: "http", url }))}`;
+const gooseLink = (url) => `https://goose-docs.ai/extension?url=${encodeURIComponent(url)}&id=baserow`;
 
 test("a README that matches the SaaS URL passes", () => {
   const readme = [
     `Use \`${URL}\` or \`https://baserow.example.com/mcp\`.`,
     "See [the docs](https://github.com/baserow/baserow/blob/develop/docs/installation/mcp-oauth.md).",
     `[Add to Cursor](${cursorLink(URL)})`,
-    `[Add to VS Code](${vscodeLink(URL)})`,
+    `| [Add to VS Code](${vscodeLink(URL)}) |`,
     `[Add to Goose](${gooseLink(URL)})`,
   ].join("\n");
   assert.deepEqual(checkReadme(readme, URL), []);
@@ -243,9 +244,23 @@ test("a README that matches the SaaS URL passes", () => {
 
 test("a stale URL or install link in the README is reported", () => {
   const old = "https://old.baserow.io/mcp";
-  const readme = [`{ "url": "${old}" }`, `${URL}/`, `[a](${cursorLink(old)})`, `[b](${vscodeLink(old)})`, `[c](${gooseLink(old)})`].join("\n");
+  const readme = [
+    `{ "url": "${old}" }`,
+    `${URL}/`,
+    `**${old}**`,
+    `| ${old}|`,
+    `http://api.baserow.io/mcp`,
+    `[a](${cursorLink(old)})`,
+    `[b](${vscodeLink(old)})`,
+    `[c](${gooseLink(old)})`,
+  ].join("\n");
   const errors = checkReadme(readme, URL);
-  assert.equal(errors.length, 5, errors.join("\n"));
+  assert.equal(errors.length, 8, errors.join("\n"));
+});
+
+test("app-scheme install links are reported, since GitHub strips them", () => {
+  const errors = checkReadme("[Add to Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=baserow)", URL);
+  assert.match(errors.join("\n"), /isn't clickable on GitHub/);
 });
 
 test("a skill with CRLF line endings, a BOM and a quoted name passes", async (t) => {
