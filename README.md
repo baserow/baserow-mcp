@@ -11,15 +11,6 @@ This repo installs Baserow's MCP server and a short skill that teaches the agent
 
 The examples below use the baserow.io URL. On self-hosted Baserow, use your own URL instead.
 
-### Self-hosted requirements
-
-- A Baserow version newer than 2.4.1. Older versions don't have `/mcp` or sign-in; use an [endpoint key](#endpoint-keys) there.
-- `BASEROW_MCP_OAUTH_ENABLED=true` on the backend. It's off by default.
-- A public HTTPS backend URL, so hosted apps like Claude.ai and ChatGPT can reach it, and outbound HTTPS from the backend, which fetches the apps' client metadata.
-- Your reverse proxy sends `/mcp` and paths under `/mcp/`, `/oauth/`, `/.well-known/oauth-authorization-server` and `/.well-known/oauth-protected-resource` to the backend. Match `/mcp` exactly, not as a prefix: the frontend serves the sign-in page at `/mcp-authorize/`.
-
-See [MCP OAuth sign-in for self-hosted Baserow](https://github.com/baserow/baserow/blob/develop/docs/installation/mcp-oauth.md).
-
 ## Quick start
 
 For agents without their own install below, pick them with `-a`:
@@ -30,6 +21,15 @@ npx skills add baserow/baserow-mcp
 ```
 
 `npx add-mcp list-agents` lists the agent names. `-g` writes to your user config; without it, `add-mcp` writes config files into the current folder. `skills add` copies the `baserow-basics` skill into your agents' skill folders. On self-hosted Baserow, run `skills add` too, since only the plugins below include the skill.
+
+## Self-hosted requirements
+
+- A Baserow version newer than 2.4.1. Older versions don't have `/mcp` or sign-in; use an [endpoint key](#endpoint-keys) there.
+- `BASEROW_MCP_OAUTH_ENABLED=true` on the backend. It's off by default.
+- A public HTTPS backend URL, so hosted apps like Claude.ai and ChatGPT can reach it, and outbound HTTPS from the backend, which fetches the apps' client metadata.
+- Your reverse proxy sends `/mcp` and paths under `/mcp/`, `/oauth/`, `/.well-known/oauth-authorization-server` and `/.well-known/oauth-protected-resource` to the backend. Match `/mcp` exactly, not as a prefix: the frontend serves the sign-in page at `/mcp-authorize/`.
+
+See [MCP OAuth sign-in for self-hosted Baserow](https://github.com/baserow/baserow/blob/develop/docs/installation/mcp-oauth.md).
 
 ## Install per agent
 
