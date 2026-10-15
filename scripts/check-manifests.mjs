@@ -1,4 +1,4 @@
-// Checks that every harness manifest points at the same server, URL and version.
+// Checks that every harness manifest and the README point at the same server, URL and version.
 // Schemas in scripts/schemas/ are vendored copies of:
 //   plugin.schema.json  https://agent-plugins.org/schemas/1.0.0/plugin.schema.json
 //   mcp.schema.json     https://agent-plugins.org/schemas/1.0.0/mcp.schema.json
@@ -12,6 +12,8 @@ import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 
 export const SERVER_NAME = "baserow";
+const CLAUDE_URL = "${user_config.mcp_url}";
+const README = "README.md";
 
 export const FILES = {
   claudePlugin: ".claude-plugin/plugin.json",
@@ -67,7 +69,26 @@ function exactly(file, what, names) {
   return ok ? [] : [`${file}: ${what} must be exactly [${SERVER_NAME}], got [${(names ?? []).join(", ")}]`];
 }
 
+const pluginNames = (plugins) => (Array.isArray(plugins) ? plugins.map((p) => p?.name) : undefined);
+
+// Returns why a server URL is wrong, or undefined. Registry URL templates like
+// https://{host}/mcp are checked with each variable filled in.
+export function urlProblem(url) {
+  if (typeof url !== "string" || /\s/.test(url)) return "must be a URL without spaces";
+  let parsed;
+  try {
+    parsed = new URL(url.replace(/\{[^}]+\}/g, "example.com"));
+  } catch {
+    return "is not a valid URL";
+  }
+  if (parsed.protocol !== "https:" || parsed.search || parsed.hash || !parsed.pathname.endsWith("/mcp")) {
+    return "must start with https:// and end with /mcp, without a query or fragment";
+  }
+  return undefined;
+}
+
 export function checkSync(m) {
+  const remotes = Array.isArray(m.registry?.remotes) ? m.registry.remotes : [];
   const versions = {
     [FILES.claudePlugin]: m.claudePlugin?.version,
     [FILES.agentPlugin]: m.agentPlugin?.version,
@@ -76,32 +97,75 @@ export function checkSync(m) {
   };
   const urls = {
     [FILES.claudePlugin]: m.claudePlugin?.userConfig?.mcp_url?.default,
+    [FILES.claudeMcp]: m.claudeMcp?.mcpServers?.[SERVER_NAME]?.url,
     [FILES.agentMcp]: m.agentMcp?.mcpServers?.[SERVER_NAME]?.url,
     [FILES.gemini]: m.gemini?.mcpServers?.[SERVER_NAME]?.httpUrl,
-    [FILES.registry]: m.registry?.remotes?.[0]?.url,
+    [FILES.registry]: remotes.find((r) => !r?.variables)?.url,
   };
   const errors = [...sameValue("version", versions), ...sameValue("SaaS URL", urls)];
   for (const [file, url] of Object.entries(urls)) {
-    if (url !== undefined && !/^https:\/\/[^/]+(\/.*)?\/mcp$/.test(url)) {
-      errors.push(`${file}: SaaS URL ${url} must start with https:// and end with /mcp`);
-    }
+    const problem = url === undefined ? undefined : urlProblem(url);
+    if (problem) errors.push(`${file}: SaaS URL ${url} ${problem}`);
+  }
+  for (const remote of remotes.filter((r) => r?.variables)) {
+    const problem = urlProblem(remote.url);
+    if (problem) errors.push(`${FILES.registry}: remote ${remote.url} ${problem}`);
+  }
+  // Claude Code fills in the user's URL; every other client reads the literal URL in .mcp.json.
+  const claudeUrl = m.claudePlugin?.mcpServers?.[SERVER_NAME]?.url;
+  if (m.claudePlugin && claudeUrl !== CLAUDE_URL) {
+    errors.push(`${FILES.claudePlugin}: mcpServers.${SERVER_NAME}.url must be ${CLAUDE_URL}, got ${claudeUrl}`);
   }
   errors.push(
+    ...exactly(FILES.claudePlugin, "servers", Object.keys(m.claudePlugin?.mcpServers ?? {})),
     ...exactly(FILES.claudeMcp, "servers", Object.keys(m.claudeMcp?.mcpServers ?? {})),
     ...exactly(FILES.agentMcp, "servers", Object.keys(m.agentMcp?.mcpServers ?? {})),
     ...exactly(FILES.gemini, "servers", Object.keys(m.gemini?.mcpServers ?? {})),
-    ...exactly(FILES.claudeMarketplace, "plugins", m.claudeMarketplace?.plugins?.map((p) => p.name)),
-    ...exactly(FILES.codexMarketplace, "plugins", m.codexMarketplace?.plugins?.map((p) => p.name)),
+    ...exactly(FILES.claudeMarketplace, "plugins", pluginNames(m.claudeMarketplace?.plugins)),
+    ...exactly(FILES.codexMarketplace, "plugins", pluginNames(m.codexMarketplace?.plugins)),
   );
-  for (const key of ["claudePlugin", "agentPlugin", "gemini"]) {
+  for (const key of ["claudePlugin", "agentPlugin", "gemini", "claudeMarketplace", "codexMarketplace"]) {
     if (m[key] && m[key].name !== SERVER_NAME) {
       errors.push(`${FILES[key]}: name must be "${SERVER_NAME}", got "${m[key].name}"`);
     }
   }
-  for (const key of ["claudeMarketplace", "codexMarketplace"]) {
-    if (m[key] && m[key].name !== SERVER_NAME) {
-      errors.push(`${FILES[key]}: name must be "${SERVER_NAME}", got "${m[key].name}"`);
+  return errors;
+}
+
+// Returns the server URL an install link in the README points at.
+function linkUrl(link) {
+  const parsed = new URL(link);
+  if (parsed.protocol === "cursor:") {
+    return JSON.parse(Buffer.from(parsed.searchParams.get("config") ?? "", "base64").toString()).url;
+  }
+  if (parsed.protocol === "vscode:") return JSON.parse(decodeURIComponent(parsed.search.slice(1))).url;
+  if (parsed.protocol === "goose:") return parsed.searchParams.get("url");
+  return undefined;
+}
+
+export function checkReadme(text, saasUrl) {
+  const errors = [];
+  for (let [url] of text.matchAll(/https:\/\/[^\s"'`<>()\]]+/g)) {
+    url = url.replace(/[.,;:]+$/, "");
+    let host;
+    try {
+      host = new URL(url).hostname;
+    } catch {
+      continue;
     }
+    if (url.includes("/mcp") && !host.endsWith("example.com") && url !== saasUrl) {
+      errors.push(`${README}: ${url} differs from the SaaS URL ${saasUrl}`);
+    }
+  }
+  for (const [, link] of text.matchAll(/\]\(((?:cursor|vscode|goose):[^)\s]+)\)/g)) {
+    let url;
+    try {
+      url = linkUrl(link);
+    } catch (e) {
+      errors.push(`${README}: can't read install link ${link} (${e.message})`);
+      continue;
+    }
+    if (url !== saasUrl) errors.push(`${README}: install link ${link} points at ${url}, not ${saasUrl}`);
   }
   return errors;
 }
@@ -147,12 +211,17 @@ export async function checkSkills(root) {
       errors.push(`${file}: file missing`);
       continue;
     }
-    const front = text.match(/^---\n([\s\S]*?)\n---/);
+    text = text.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
+    const front = text.match(/^---\n([\s\S]*?)\n---(?:\n|$)/);
     if (!front) {
       errors.push(`${file}: front matter missing`);
       continue;
     }
-    const field = (k) => front[1].match(new RegExp(`^${k}:\\s*(.+)$`, "m"))?.[1].trim();
+    const field = (k) =>
+      front[1]
+        .match(new RegExp(`^${k}:[ \\t]*(.*)$`, "m"))?.[1]
+        .trim()
+        .replace(/^(["'])(.*)\1$/, "$2");
     const name = field("name");
     if (!name) errors.push(`${file}: name missing`);
     else if (name !== dir) errors.push(`${file}: name "${name}" must match folder "${dir}"`);
@@ -164,9 +233,17 @@ export async function checkSkills(root) {
 export async function runAll(root) {
   const { manifests, errors } = await loadManifests(root);
   const schemaDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "schemas");
+  const saasUrl = manifests.agentMcp?.mcpServers?.[SERVER_NAME]?.url;
+  let readme;
+  try {
+    readme = await readFile(path.join(root, README), "utf8");
+  } catch {
+    errors.push(`${README}: file missing`);
+  }
   return [
     ...errors,
     ...checkSync(manifests),
+    ...(readme === undefined || saasUrl === undefined ? [] : checkReadme(readme, saasUrl)),
     ...(await checkSchemas(manifests, schemaDir)),
     ...(await checkSkills(root)),
   ];

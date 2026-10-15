@@ -1,10 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  checkReadme,
   checkSync,
   checkSchemas,
   checkSkills,
@@ -22,9 +23,10 @@ function validManifests() {
       name: "baserow",
       version: "0.1.0",
       userConfig: { mcp_url: { type: "string", default: URL, required: true } },
+      mcpServers: { baserow: { type: "http", url: "${user_config.mcp_url}" } },
     },
     claudeMarketplace: { name: "baserow", plugins: [{ name: "baserow", source: "./" }] },
-    claudeMcp: { mcpServers: { baserow: { type: "http", url: "${user_config.mcp_url}" } } },
+    claudeMcp: { mcpServers: { baserow: { type: "http", url: URL } } },
     agentPlugin: { $schema: `${AGENT_SCHEMA}/plugin.schema.json`, name: "baserow", version: "0.1.0", description: "d" },
     agentMcp: { $schema: `${AGENT_SCHEMA}/mcp.schema.json`, mcpServers: { baserow: { type: "streamable-http", url: URL } } },
     codexMarketplace: { name: "baserow", plugins: [{ name: "baserow" }] },
@@ -34,7 +36,10 @@ function validManifests() {
       description: "d",
       name: "io.baserow/baserow",
       version: "0.1.0",
-      remotes: [{ type: "streamable-http", url: URL }],
+      remotes: [
+        { type: "streamable-http", url: URL },
+        { type: "streamable-http", url: "https://{host}/mcp", variables: { host: { isRequired: true } } },
+      ],
     },
   };
 }
@@ -70,6 +75,7 @@ test("the SaaS URL must be https and end in /mcp", () => {
   m.claudePlugin.userConfig.mcp_url.default = "http://api.baserow.io/mcp";
   m.gemini.mcpServers.baserow.httpUrl = "http://api.baserow.io/mcp";
   m.registry.remotes[0].url = "http://api.baserow.io/mcp";
+  m.claudeMcp.mcpServers.baserow.url = "http://api.baserow.io/mcp";
   assert.match(checkSync(m).join("\n"), /must start with https:\/\/ and end with \/mcp/);
 });
 
@@ -125,48 +131,126 @@ test("an Agent Plugins mcp.json without type fails the schema", async () => {
   );
 });
 
-async function repoWithSkill(name, body) {
-  const root = await mkdtemp(path.join(tmpdir(), "skills-"));
+async function tempDir(t, prefix) {
+  const dir = await mkdtemp(path.join(tmpdir(), prefix));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  return dir;
+}
+
+async function repoWithSkill(t, name, body) {
+  const root = await tempDir(t, "skills-");
   await mkdir(path.join(root, "skills", name), { recursive: true });
   await writeFile(path.join(root, "skills", name, "SKILL.md"), body);
   return root;
 }
 
-test("a skill with name and description passes", async () => {
-  const root = await repoWithSkill("baserow-basics", "---\nname: baserow-basics\ndescription: Use when x.\n---\n\nBody\n");
+test("a skill with name and description passes", async (t) => {
+  const root = await repoWithSkill(t, "baserow-basics", "---\nname: baserow-basics\ndescription: Use when x.\n---\n\nBody\n");
   assert.deepEqual(await checkSkills(root), []);
 });
 
-test("a skill without description fails", async () => {
-  const root = await repoWithSkill("baserow-basics", "---\nname: baserow-basics\n---\n\nBody\n");
+test("a skill without description fails", async (t) => {
+  const root = await repoWithSkill(t, "baserow-basics", "---\nname: baserow-basics\n---\n\nBody\n");
   assert.match((await checkSkills(root)).join("\n"), /description/);
 });
 
-test("a skill whose name differs from its folder fails", async () => {
-  const root = await repoWithSkill("baserow-basics", "---\nname: basics\ndescription: d\n---\n");
+test("a skill whose name differs from its folder fails", async (t) => {
+  const root = await repoWithSkill(t, "baserow-basics", "---\nname: basics\ndescription: d\n---\n");
   assert.match((await checkSkills(root)).join("\n"), /name "basics" must match folder "baserow-basics"/);
 });
 
-test("missing manifest files are reported by path", async () => {
-  const root = await mkdtemp(path.join(tmpdir(), "empty-"));
+test("missing manifest files are reported by path", async (t) => {
+  const root = await tempDir(t, "empty-");
   const { errors } = await loadManifests(root);
   assert.ok(errors.includes("gemini-extension.json: file missing"), errors.join("\n"));
 });
 
-test("invalid JSON is reported by path", async () => {
-  const root = await mkdtemp(path.join(tmpdir(), "badjson-"));
+test("invalid JSON is reported by path", async (t) => {
+  const root = await tempDir(t, "badjson-");
   await writeFile(path.join(root, "server.json"), "{ nope");
   const { errors } = await loadManifests(root);
   assert.ok(errors.some((e) => /^server\.json: invalid JSON/.test(e)), errors.join("\n"));
 });
 
-test("a skill without front matter fails", async () => {
-  const root = await repoWithSkill("baserow-basics", "Body only\n");
+test("a skill without front matter fails", async (t) => {
+  const root = await repoWithSkill(t, "baserow-basics", "Body only\n");
   assert.deepEqual(await checkSkills(root), ["skills/baserow-basics/SKILL.md: front matter missing"]);
 });
 
-test("an empty skills folder is reported", async () => {
-  const root = await mkdtemp(path.join(tmpdir(), "noskills-"));
+test("an empty skills folder is reported", async (t) => {
+  const root = await tempDir(t, "noskills-");
   await mkdir(path.join(root, "skills"));
   assert.deepEqual(await checkSkills(root), ["skills/: no skills"]);
+});
+
+test("the Claude plugin must fill in the user's URL", () => {
+  const m = validManifests();
+  m.claudePlugin.mcpServers.baserow.url = URL;
+  assert.match(checkSync(m).join("\n"), /plugin\.json: mcpServers\.baserow\.url must be \$\{user_config\.mcp_url\}/);
+});
+
+test("a placeholder in .mcp.json is reported, since only Claude Code fills it in", () => {
+  const m = validManifests();
+  m.claudeMcp.mcpServers.baserow.url = "${user_config.mcp_url}";
+  assert.match(checkSync(m).join("\n"), /SaaS URL differs/);
+});
+
+test("the registry SaaS remote is found whatever the order", () => {
+  const m = validManifests();
+  m.registry.remotes.reverse();
+  assert.deepEqual(checkSync(m), []);
+});
+
+test("a self-hosted registry remote must end in /mcp", () => {
+  const m = validManifests();
+  m.registry.remotes[1].url = "https://{host}";
+  assert.match(checkSync(m).join("\n"), /server\.json: remote https:\/\/\{host\} must start with https:\/\//);
+});
+
+test("a SaaS URL with a query, fragment or space is rejected", () => {
+  for (const bad of ["https://api.baserow.io/mcp?x=/mcp", "https://api.baserow.io#/mcp", "https://bad host/mcp"]) {
+    const m = validManifests();
+    m.agentMcp.mcpServers.baserow.url = bad;
+    assert.ok(checkSync(m).some((e) => e.startsWith(`mcp.json: SaaS URL ${bad} `)), bad);
+  }
+});
+
+test("malformed marketplace plugins are reported without crashing", () => {
+  for (const plugins of [{ baserow: {} }, [null]]) {
+    const m = validManifests();
+    m.claudeMarketplace.plugins = plugins;
+    assert.match(checkSync(m).join("\n"), /marketplace\.json: plugins must be exactly \[baserow\]/);
+  }
+});
+
+const cursorLink = (url) =>
+  `cursor://anysphere.cursor-deeplink/mcp/install?name=baserow&config=${Buffer.from(JSON.stringify({ url })).toString("base64")}`;
+const vscodeLink = (url) => `vscode:mcp/install?${encodeURIComponent(JSON.stringify({ name: "baserow", type: "http", url }))}`;
+const gooseLink = (url) => `goose://extension?url=${encodeURIComponent(url)}&id=baserow`;
+
+test("a README that matches the SaaS URL passes", () => {
+  const readme = [
+    `Use \`${URL}\` or \`https://baserow.example.com/mcp\`.`,
+    `[Add to Cursor](${cursorLink(URL)})`,
+    `[Add to VS Code](${vscodeLink(URL)})`,
+    `[Add to Goose](${gooseLink(URL)})`,
+  ].join("\n");
+  assert.deepEqual(checkReadme(readme, URL), []);
+});
+
+test("a stale URL or install link in the README is reported", () => {
+  const old = "https://old.baserow.io/mcp";
+  const readme = [`{ "url": "${old}" }`, `${URL}/`, `[a](${cursorLink(old)})`, `[b](${vscodeLink(old)})`, `[c](${gooseLink(old)})`].join("\n");
+  const errors = checkReadme(readme, URL);
+  assert.equal(errors.length, 5, errors.join("\n"));
+});
+
+test("a skill with CRLF line endings, a BOM and a quoted name passes", async (t) => {
+  const root = await repoWithSkill(t, "baserow-basics", '\uFEFF---\r\nname: "baserow-basics"\r\ndescription: d\r\n---\r\n');
+  assert.deepEqual(await checkSkills(root), []);
+});
+
+test("an empty description doesn't borrow the next line", async (t) => {
+  const root = await repoWithSkill(t, "baserow-basics", "---\nname: baserow-basics\ndescription:\nlicense: MIT\n---\n");
+  assert.deepEqual(await checkSkills(root), ["skills/baserow-basics/SKILL.md: description missing"]);
 });

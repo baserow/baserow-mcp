@@ -125,7 +125,7 @@ npx add-mcp https://baserow.example.com/mcp -n baserow -h "Authorization: Bearer
 
 Run `npm install`, then `npm test` and `npm run check`. CI runs the same checks.
 
-Claude Code started inside this repo also loads `.mcp.json` as a project server. Ignore that entry; it only works when installed as a plugin.
+The Claude Code plugin declares its server in `.claude-plugin/plugin.json`, so it can use the URL you enter. `.mcp.json` holds the baserow.io URL for other tools that read Claude-format plugins, such as GitHub Copilot CLI.
 
 ## License
 
