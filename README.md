@@ -4,50 +4,30 @@ Connect your AI agent to [Baserow](https://baserow.io). Your agent can read and 
 
 This repo installs Baserow's MCP server and a short skill that teaches the agent how to use it. It works with Claude, ChatGPT, Codex, Cursor, VS Code, GitHub Copilot, Gemini CLI, OpenCode, Zed, Goose, Windsurf, Pi and other agents.
 
-## Install for baserow.io
+## Tools
 
-The server URL is `https://api.baserow.io/mcp`.
+| Tool | What it does | Changes data |
+|---|---|---|
+| `list_databases` | Lists the databases in the workspace | No |
+| `list_tables` | Lists tables, optionally for one database | No |
+| `get_table_schema` | Returns the fields of one or more tables | No |
+| `list_table_rows` | Lists rows, with search and pagination | No |
+| `create_rows` | Creates rows | Yes |
+| `update_rows` | Updates rows by ID | Yes |
+| `delete_rows` | Deletes rows by ID | Yes |
 
-### Claude Code
+You pick the tools when you sign in. Only the read tools are ticked on a first connection.
 
-```
-/plugin marketplace add baserow/baserow-mcp
-/plugin install baserow@baserow
-```
+## Your server URL
 
-Keep the default URL when asked. Then run `/mcp`, pick `plugin:baserow:baserow` and sign in.
+- **baserow.io**: `https://api.baserow.io/mcp`
+- **Self-hosted**: your backend URL followed by `/mcp`, for example `https://baserow.example.com/mcp`. Copy it from Settings → MCP server in Baserow. Your reverse proxy must send `/mcp`, `/oauth/` and `/.well-known/` to the Baserow backend.
 
-### Claude.ai and Claude Desktop
+The examples below use the baserow.io URL. On self-hosted Baserow, use your own URL instead.
 
-Customize → Connectors → + Add → Add custom connector. Name it Baserow and use `https://api.baserow.io/mcp`. On Team and Enterprise plans an owner adds it under Organization settings → Connectors.
+## Quick start
 
-### ChatGPT
-
-Open Plugins, select the plus button, then Add custom MCP server, and use `https://api.baserow.io/mcp`. Menu names change often. On Business and Enterprise plans an admin has to allow custom MCP servers first.
-
-### Codex, Cursor, VS Code, GitHub Copilot CLI
-
-```
-npx plugins add baserow/baserow-mcp
-```
-
-Or add only the server:
-
-- Cursor: [Add to Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=baserow&config=eyJ1cmwiOiJodHRwczovL2FwaS5iYXNlcm93LmlvL21jcCJ9)
-- VS Code: [Add to VS Code](vscode:mcp/install?%7B%22name%22%3A%22baserow%22%2C%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fapi.baserow.io%2Fmcp%22%7D)
-- Codex: `codex mcp add baserow --url https://api.baserow.io/mcp`, then `codex mcp login baserow`
-
-### Gemini CLI
-
-```
-gemini extensions install https://github.com/baserow/baserow-mcp
-```
-
-### Goose
-
-[Add to Goose](goose://extension?url=https%3A%2F%2Fapi.baserow.io%2Fmcp&type=streamable_http&id=baserow&name=Baserow)
-
-### Any other agent
+This works for most agents:
 
 ```
 npx add-mcp https://api.baserow.io/mcp -n baserow
@@ -56,49 +36,71 @@ npx skills add baserow/baserow-mcp
 
 `add-mcp` finds the agents you have installed and adds the server to each. Add `-a <agent>` to pick one, or `-g` to install globally. `skills add` copies the `baserow-basics` skill into your agents' skill folders.
 
-## Self-hosted Baserow
+## Install per agent
 
-Your server URL is your backend URL followed by `/mcp`, for example `https://baserow.example.com/mcp`. You can copy it from Settings → MCP server in Baserow.
+| Agent | baserow.io | Self-hosted |
+|---|---|---|
+| Claude Code | [Plugin](#claude-code) | Same plugin, enter your URL when asked |
+| Claude.ai, Claude Desktop | [Custom connector](#claudeai-and-claude-desktop) | Same, with your URL |
+| ChatGPT | [Custom MCP server](#chatgpt) | Same, with your URL |
+| Codex, Cursor, VS Code, GitHub Copilot CLI | `npx plugins add baserow/baserow-mcp` | [Config](#codex) or [config file](#config-files) |
+| Gemini CLI | `gemini extensions install https://github.com/baserow/baserow-mcp` | `gemini mcp add -t http baserow <your url>` |
+| Goose | [Add to Goose](goose://extension?url=https%3A%2F%2Fapi.baserow.io%2Fmcp&type=streamable_http&id=baserow&name=Baserow) | [Quick start](#quick-start) with your URL |
+| OpenCode, Windsurf, Zed | [Config file](#config-files) | Same, with your URL |
+| Any other agent | [Quick start](#quick-start) | Same, with your URL |
 
-Your reverse proxy must send `/mcp`, `/oauth/` and `/.well-known/` to the Baserow backend.
+The Codex, Cursor, VS Code, Copilot and Gemini plugins always point at baserow.io, so on self-hosted Baserow add only the server for those agents.
 
-The quickest way for any agent:
+### Claude Code
 
 ```
-npx add-mcp https://baserow.example.com/mcp -n baserow
-npx skills add baserow/baserow-mcp
+/plugin marketplace add baserow/baserow-mcp
+/plugin install baserow@baserow
 ```
 
-Per agent:
+Keep the default URL when asked, or enter your self-hosted URL. To change it later, run `claude plugin configure baserow@baserow`. Then run `/mcp`, pick `plugin:baserow:baserow` and sign in.
 
-- **Claude Code**: install the plugin as above and enter your URL when asked. To change it later, run `claude plugin configure baserow@baserow`.
-- **Claude.ai and Claude Desktop**: add a custom connector with your URL.
-- **ChatGPT**: add a custom MCP server with your URL.
-- **Codex**: `codex mcp add baserow --url https://baserow.example.com/mcp`, then `codex mcp login baserow`.
-- **Cursor**, `~/.cursor/mcp.json`:
+### Claude.ai and Claude Desktop
+
+Customize → Connectors → + Add → Add custom connector. Name it Baserow and enter your server URL. On Team and Enterprise plans an owner adds it under Organization settings → Connectors.
+
+### ChatGPT
+
+Open Plugins, select the plus button, then Add custom MCP server, and enter your server URL. Menu names change often. On Business and Enterprise plans an admin has to allow custom MCP servers first.
+
+### Codex
+
+```
+codex mcp add baserow --url https://api.baserow.io/mcp
+codex mcp login baserow
+```
+
+### Config files
+
+To add only the server, without the plugin:
+
+- Cursor: [Add to Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=baserow&config=eyJ1cmwiOiJodHRwczovL2FwaS5iYXNlcm93LmlvL21jcCJ9), or `~/.cursor/mcp.json`:
   ```json
-  { "mcpServers": { "baserow": { "url": "https://baserow.example.com/mcp" } } }
+  { "mcpServers": { "baserow": { "url": "https://api.baserow.io/mcp" } } }
   ```
-- **VS Code**, `.vscode/mcp.json`:
+- VS Code: [Add to VS Code](vscode:mcp/install?%7B%22name%22%3A%22baserow%22%2C%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fapi.baserow.io%2Fmcp%22%7D), or `.vscode/mcp.json`:
   ```json
-  { "servers": { "baserow": { "type": "http", "url": "https://baserow.example.com/mcp" } } }
+  { "servers": { "baserow": { "type": "http", "url": "https://api.baserow.io/mcp" } } }
   ```
-- **OpenCode**, `opencode.json`:
+- OpenCode, `opencode.json`, then `opencode mcp auth baserow`:
   ```json
-  { "mcp": { "baserow": { "type": "remote", "url": "https://baserow.example.com/mcp" } } }
+  { "mcp": { "baserow": { "type": "remote", "url": "https://api.baserow.io/mcp" } } }
   ```
-  Then `opencode mcp auth baserow`.
-- **Gemini CLI**: `gemini mcp add -t http baserow https://baserow.example.com/mcp`
-- **Windsurf**, `~/.codeium/windsurf/mcp_config.json`:
+- Windsurf, `~/.codeium/windsurf/mcp_config.json`:
   ```json
-  { "mcpServers": { "baserow": { "serverUrl": "https://baserow.example.com/mcp" } } }
+  { "mcpServers": { "baserow": { "serverUrl": "https://api.baserow.io/mcp" } } }
   ```
-- **Zed**, settings:
+- Zed, settings:
   ```json
-  { "context_servers": { "baserow": { "url": "https://baserow.example.com/mcp" } } }
+  { "context_servers": { "baserow": { "url": "https://api.baserow.io/mcp" } } }
   ```
 
-The Codex, Cursor, VS Code, Copilot and Gemini plugins always point at baserow.io. On self-hosted Baserow, use `npx add-mcp` or the snippets above for those agents.
+The Add to Cursor and Add to VS Code links use the baserow.io URL.
 
 ## Signing in
 
@@ -106,7 +108,14 @@ The first time your agent uses Baserow, it opens a Baserow page in your browser.
 
 Your connected apps are listed under Settings → MCP server in Baserow. Disconnect one there to revoke its access.
 
-## Endpoint keys (scripts)
+## Troubleshooting
+
+- **A tool is missing, or no databases are listed.** The connection only has the workspace and tools you picked at sign-in. Reconnect and pick again.
+- **The sign-in never starts, or the client says the server doesn't support OAuth or client registration.** Your Baserow version doesn't support OAuth for MCP yet. Update Baserow, or use an [endpoint key](#endpoint-keys).
+- **The connection fails with a URL you typed.** Copy the URL exactly as Settings → MCP server shows it. It ends in `/mcp`, with no trailing slash.
+- **Two Baserow servers in Claude Code.** If you also added a `baserow` server by hand with the same URL, Claude Code shows only that one and hides the plugin's. Keep one: `claude mcp remove baserow` removes the hand-added server.
+
+### Endpoint keys
 
 Older Baserow versions only accept an endpoint key, and the plugin doesn't set this up. Copy the endpoint URL from Settings → MCP server. It ends in `/sse` and contains your key. Add it by hand:
 
@@ -114,18 +123,17 @@ Older Baserow versions only accept an endpoint key, and the plugin doesn't set t
 npx add-mcp "<endpoint url>" -t sse -n baserow
 ```
 
-Baserow versions with OAuth for MCP also accept the key as a header on `/mcp`:
+Baserow versions with OAuth for MCP also accept the key as a header on `/mcp`, which is useful for scripts:
 
 ```
 npx add-mcp https://baserow.example.com/mcp -n baserow -h "Authorization: Bearer <key>"
 ```
 
-## Troubleshooting
+## Privacy and support
 
-- **A tool is missing, or no databases are listed.** The connection only has the workspace and tools you picked at sign-in. Reconnect and pick again.
-- **The sign-in never starts, or the client says the server doesn't support OAuth or client registration.** Your Baserow version doesn't support OAuth for MCP yet. Update Baserow, or use an endpoint key as described in [Endpoint keys](#endpoint-keys-scripts).
-- **The connection fails with a URL you typed.** Copy the URL exactly as Settings → MCP server shows it. It ends in `/mcp`, with no trailing slash.
-- **Two Baserow servers in Claude Code.** If you also added a `baserow` server by hand with the same URL, Claude Code shows only that one and hides the plugin's. Keep one: `claude mcp remove baserow` removes the hand-added server.
+- Privacy policy: https://baserow.io/privacy-policy
+- Terms: https://baserow.io/terms-and-conditions
+- Help: [community forum](https://community.baserow.io) or [contact us](https://baserow.io/contact)
 
 ## Developing
 
