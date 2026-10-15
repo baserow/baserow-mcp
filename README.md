@@ -4,7 +4,7 @@ Connect your AI agent to [Baserow](https://baserow.io). Your agent can read and 
 
 This repo installs Baserow's MCP server and a short skill that teaches the agent how to use it. It works with Claude, ChatGPT, Codex, Cursor, VS Code, GitHub Copilot, Gemini CLI, OpenCode, Zed, Goose, Windsurf, Pi and other agents.
 
-## Your server URL
+## Server URL
 
 - **baserow.io**: `https://api.baserow.io/mcp`
 - **Self-hosted**: your backend URL followed by `/mcp`, for example `https://baserow.example.com/mcp`. Copy it from Settings → MCP server in Baserow. Sign-in needs `BASEROW_MCP_OAUTH_ENABLED=true` on the backend; it's off by default. Your reverse proxy must send `/mcp`, `/oauth/`, `/.well-known/oauth-authorization-server` and `/.well-known/oauth-protected-resource` to the backend. See [MCP OAuth sign-in for self-hosted Baserow](https://github.com/baserow/baserow/blob/develop/docs/installation/mcp-oauth.md).
@@ -98,7 +98,7 @@ Your connected apps are listed under Settings → MCP server in Baserow. Disconn
 ## Troubleshooting
 
 - **A tool is missing, or no databases are listed.** The connection only has the workspace and tools you picked at sign-in. Reconnect and pick again.
-- **The sign-in never starts, or the client says the server doesn't support OAuth or client registration.** On self-hosted Baserow, check that `BASEROW_MCP_OAUTH_ENABLED=true` is set and that the proxy routes the OAuth paths in [Your server URL](#your-server-url). Older Baserow versions don't support OAuth for MCP; update Baserow or use an [endpoint key](#endpoint-keys).
+- **The sign-in never starts, or the client says the server doesn't support OAuth or client registration.** On self-hosted Baserow, check that `BASEROW_MCP_OAUTH_ENABLED=true` is set and that the proxy routes the OAuth paths in [Server URL](#server-url). Older Baserow versions don't support OAuth for MCP; update Baserow or use an [endpoint key](#endpoint-keys).
 - **The connection fails with a URL you typed.** Copy the URL exactly as Settings → MCP server shows it. It ends in `/mcp`, with no trailing slash.
 - **Two Baserow servers in Claude Code.** If you also added a `baserow` server by hand with the same URL, Claude Code shows only that one and hides the plugin's. Keep one: `claude mcp remove baserow` removes the hand-added server.
 
