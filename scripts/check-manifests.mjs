@@ -147,13 +147,13 @@ export function checkReadme(text, saasUrl) {
   const errors = [];
   for (let [url] of text.matchAll(/https:\/\/[^\s"'`<>()\]]+/g)) {
     url = url.replace(/[.,;:]+$/, "");
-    let host;
+    let parsed;
     try {
-      host = new URL(url).hostname;
+      parsed = new URL(url);
     } catch {
       continue;
     }
-    if (url.includes("/mcp") && !host.endsWith("example.com") && url !== saasUrl) {
+    if (/\/mcp(\/|$)/.test(parsed.pathname) && !parsed.hostname.endsWith("example.com") && url !== saasUrl) {
       errors.push(`${README}: ${url} differs from the SaaS URL ${saasUrl}`);
     }
   }
