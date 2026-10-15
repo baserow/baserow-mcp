@@ -134,20 +134,20 @@ export function checkSync(m) {
   return errors;
 }
 
-// Returns the server URL an install link in the README points at.
-function linkUrl(link) {
-  const parsed = new URL(link);
-  if (parsed.protocol === "cursor:") {
-    return JSON.parse(Buffer.from(parsed.searchParams.get("config") ?? "", "base64").toString()).url;
-  }
-  if (parsed.protocol === "vscode:") return JSON.parse(decodeURIComponent(parsed.search.slice(1))).url;
-  if (parsed.protocol === "goose:") return parsed.searchParams.get("url");
-  return undefined;
-}
+// Install links in the README, and how to read the server URL out of each.
+// GitHub strips cursor:, vscode: and goose: links, so the README uses the https forms.
+const INSTALL_LINKS = [
+  ["cursor.com", "/install-mcp", (p) => JSON.parse(Buffer.from(p.get("config") ?? "", "base64").toString()).url],
+  ["vscode.dev", "/redirect/mcp/install", (p) => JSON.parse(p.get("config") ?? "").url],
+  ["goose-docs.ai", "/extension", (p) => p.get("url")],
+];
+
+const installLink = (parsed) =>
+  INSTALL_LINKS.find(([host, pathname]) => parsed.hostname === host && parsed.pathname.replace(/\/$/, "") === pathname);
 
 export function checkReadme(text, saasUrl) {
   const errors = [];
-  for (let [url] of text.matchAll(/https:\/\/[^\s"'`<>()\]]+/g)) {
+  for (let [url] of text.matchAll(/https?:\/\/[^\s"'`<>()\]|*!]+/g)) {
     url = url.replace(/[.,;:]+$/, "");
     let parsed;
     try {
@@ -155,19 +155,22 @@ export function checkReadme(text, saasUrl) {
     } catch {
       continue;
     }
-    if (/\/mcp(\/|$)/.test(parsed.pathname) && !parsed.hostname.endsWith("example.com") && url !== saasUrl) {
+    const link = installLink(parsed);
+    if (link) {
+      let target;
+      try {
+        target = link[2](parsed.searchParams);
+      } catch (e) {
+        errors.push(`${README}: can't read install link ${url} (${e.message})`);
+        continue;
+      }
+      if (target !== saasUrl) errors.push(`${README}: install link ${url} points at ${target}, not ${saasUrl}`);
+    } else if (!parsed.hostname.endsWith("example.com") && /\/mcp(\/|$)/.test(parsed.pathname) && url !== saasUrl) {
       errors.push(`${README}: ${url} differs from the SaaS URL ${saasUrl}`);
     }
   }
   for (const [, link] of text.matchAll(/\]\(((?:cursor|vscode|goose):[^)\s]+)\)/g)) {
-    let url;
-    try {
-      url = linkUrl(link);
-    } catch (e) {
-      errors.push(`${README}: can't read install link ${link} (${e.message})`);
-      continue;
-    }
-    if (url !== saasUrl) errors.push(`${README}: install link ${link} points at ${url}, not ${saasUrl}`);
+    errors.push(`${README}: ${link} isn't clickable on GitHub; use the https install link`);
   }
   return errors;
 }
