@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "test": "node --test *.test.mjs",
-    "check": "node check-manifests.mjs .."
+    "check": "node check-manifests.mjs ..",
+    "zip:openai": "./build-openai-zip.sh"
   },
   "devDependencies": {
     "ajv": "^8.17.1",
