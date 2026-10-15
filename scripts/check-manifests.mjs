@@ -112,6 +112,14 @@ export function checkSync(m) {
   for (const remote of remotes.filter((r) => r?.variables)) {
     const problem = urlProblem(remote.url);
     if (problem) errors.push(`${FILES.registry}: remote ${remote.url} ${problem}`);
+    const used = [...String(remote.url).matchAll(/\{([^}]+)\}/g)].map(([, name]) => name);
+    const declared = Object.keys(remote.variables);
+    for (const name of used.filter((n) => !declared.includes(n))) {
+      errors.push(`${FILES.registry}: remote ${remote.url} uses {${name}}, which isn't in its variables`);
+    }
+    for (const name of declared.filter((n) => !used.includes(n))) {
+      errors.push(`${FILES.registry}: remote ${remote.url} declares ${name}, which its URL doesn't use`);
+    }
   }
   // Claude Code fills in the user's URL; every other client reads the literal URL in .mcp.json.
   const claudeUrl = m.claudePlugin?.mcpServers?.[SERVER_NAME]?.url;

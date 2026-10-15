@@ -267,3 +267,11 @@ test("a listing logo that doesn't exist is reported", async (t) => {
   m.agentPlugin.extensions = { "com.openai": { interface: { logo: "./assets/logo.png", composerIcon: "./assets/missing.svg" } } };
   assert.deepEqual(await checkAssets(m, root), ["plugin.json: interface.composerIcon ./assets/missing.svg not found"]);
 });
+
+test("registry URL variables must match the URL", () => {
+  const m = validManifests();
+  m.registry.remotes[1].url = "https://{baserow_host}/mcp";
+  const errors = checkSync(m).join("\n");
+  assert.match(errors, /uses \{baserow_host\}, which isn't in its variables/);
+  assert.match(errors, /declares host, which its URL doesn't use/);
+});
