@@ -1,0 +1,78 @@
+name: release
+
+# Runs when a maintainer publishes a GitHub release tagged v<version>.
+# Publishes server.json to the MCP Registry under io.baserow/*. Needs the
+# MCP_REGISTRY_PRIVATE_KEY secret: the hex Ed25519 private key whose public key is
+# in the `v=MCPv1` TXT record on baserow.io (see the registry's authentication docs).
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish-registry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: scripts/package-lock.json
+      - run: npm ci
+        working-directory: scripts
+      - run: npm test
+        working-directory: scripts
+      - run: npm run check
+        working-directory: scripts
+
+      - name: Check the tag matches the manifests
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          VERSION=$(node -p 'require("./server.json").version')
+          if [ "$TAG" != "v$VERSION" ]; then
+            echo "Release tag $TAG doesn't match version $VERSION in server.json"
+            exit 1
+          fi
+
+      - name: Check the version isn't in the registry yet
+        id: registry
+        run: |
+          EXISTS=$(node -e '
+            const { name, version } = require("./server.json");
+            const url = `https://registry.modelcontextprotocol.io/v0/servers?search=${encodeURIComponent(name)}&version=${encodeURIComponent(version)}`;
+            fetch(url)
+              .then((res) => {
+                if (!res.ok) throw new Error(`Registry query failed: ${res.status}`);
+                return res.json();
+              })
+              .then((data) => {
+                const found = (data.servers ?? []).some((s) => s.server?.name === name && s.server?.version === version);
+                process.stdout.write(String(found));
+              })
+              .catch((err) => {
+                console.error(err.message);
+                process.exit(1);
+              });
+          ')
+          echo "exists=$EXISTS" >> "$GITHUB_OUTPUT"
+          if [ "$EXISTS" = "true" ]; then echo "Already published, skipping."; fi
+
+      - name: Install mcp-publisher
+        if: steps.registry.outputs.exists == 'false'
+        run: |
+          curl -fsSL -o mcp-publisher.tar.gz https://github.com/modelcontextprotocol/registry/releases/download/v1.8.1/mcp-publisher_linux_amd64.tar.gz
+          echo "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc  mcp-publisher.tar.gz" | sha256sum -c -
+          tar -xzf mcp-publisher.tar.gz mcp-publisher
+
+      - name: Publish to the MCP Registry
+        if: steps.registry.outputs.exists == 'false'
+        env:
+          MCP_REGISTRY_PRIVATE_KEY: ${{ secrets.MCP_REGISTRY_PRIVATE_KEY }}
+        run: |
+          ./mcp-publisher login dns --domain baserow.io --private-key "$MCP_REGISTRY_PRIVATE_KEY"
+          ./mcp-publisher publish
