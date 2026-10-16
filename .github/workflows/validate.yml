@@ -25,5 +25,7 @@ jobs:
         working-directory: scripts
       - run: npm run check
         working-directory: scripts
+      - run: npm run zip:openai
+        working-directory: scripts
       - name: Validate Claude Code plugin
         run: npx -y @anthropic-ai/claude-code@2.1.293 plugin validate .
