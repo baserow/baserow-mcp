@@ -13,6 +13,7 @@ view. Fields, views, filters and sorts take field IDs; rows take field names.
 
 ## Databases and tables
 
+Find databases with `list_applications` (`list_databases` on older servers).
 `create_database` creates an empty database and `update_database` renames one. There's
 no tool to delete a database or to rename or delete a table.
 

@@ -14,7 +14,7 @@ dashboards".
 title, table, view, fields and aggregations. `get_widget_data` returns the figures as the
 dashboard computes them now, for at most 20 widgets a call. A summary returns
 `{"result": <value>}`, and a chart returns `{"results": [...]}` with a row per category.
-Numbers come as strings. A widget that can't compute returns `configured: false` and the
+Numbers may come as strings. A widget that can't compute returns `configured: false` and the
 problem.
 
 ## Building
@@ -22,8 +22,8 @@ problem.
 `create_dashboard` creates an empty dashboard and `update_dashboard` renames one. There's
 no tool to delete a dashboard.
 
-Call `get_table_schema` first: widgets take field IDs. `create_widgets` adds at most 20
-widgets a call, of three types:
+Call `get_table_schema` first: every widget needs the `table_id` it reads and field IDs
+from that table. `create_widgets` adds at most 20 widgets a call, of three types:
 
 - `summary`: one figure, a `field_id` and an `aggregation_type`.
 - `chart`: one or more `series`, each a `field_id` and an `aggregation_type`, optionally
@@ -38,8 +38,8 @@ give a `view_id` and filter that view with the `baserow-databases` skill. Widget
 have filters of their own.
 
 ```json
-{ "type": "summary", "title": "Open deals", "field_id": 41, "aggregation_type": "sum", "view_id": 7 }
-{ "type": "chart", "title": "Revenue by stage", "series": [{ "field_id": 41, "aggregation_type": "sum" }], "group_by_field_id": 42 }
+{ "type": "summary", "title": "Open deals", "table_id": 12, "field_id": 41, "aggregation_type": "sum", "view_id": 7 }
+{ "type": "chart", "title": "Revenue by stage", "table_id": 12, "series": [{ "field_id": 41, "aggregation_type": "sum" }], "group_by_field_id": 42 }
 ```
 
 ## Changing

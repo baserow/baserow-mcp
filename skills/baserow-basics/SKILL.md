@@ -38,9 +38,11 @@ those values finds nothing, page through the rows and compare the field yourself
 ## Results and undo
 
 A call can succeed and still leave things out. When a result has `errors`, those items
-failed and the others were saved; each error has a `code`, such as `not_found`,
-`permission_denied`, `invalid_input` or `invalid_formula`, and a `message`. Read it
-before telling the user it's done, and fix and resend only the failed items.
+failed and the others were saved. Each error says which item failed and why, and many
+have a `code`, such as `not_found`, `permission_denied`, `invalid_input`, `conflict` or
+`invalid_formula`. Read them before telling the user it's done, and fix and resend only
+the failed items. A call that fails as a whole returns an error message instead, such as
+"Not found in this workspace." or "Invalid arguments. …".
 
 Changes made through these tools can't be undone with Baserow's undo. Deleted rows,
 fields, views, nodes and widgets go to the trash, where the user can restore them for 3

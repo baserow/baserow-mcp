@@ -50,6 +50,8 @@ field names:
 - `get('page_parameter.<name>')` reads a page parameter.
 - `get('current_record.field_<id>')` reads the row inside a table or repeat, and
   `get('current_record.id')` its ID.
+- `get('data_source.<id>.field_<id>')` reads a `get_row` data source anywhere on its
+  page.
 - `get('form_data.<element id>')` reads a form input in an action.
 - `get('previous_action.<action id>.<field>')` reads what an earlier action returned.
 
