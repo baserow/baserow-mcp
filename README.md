@@ -1,8 +1,8 @@
 # Baserow MCP
 
-Connect your AI agent to [Baserow](https://baserow.io). Your agent can read and change tables in one Baserow workspace, using only the tools you allow when you sign in.
+Connect your AI agent to [Baserow](https://baserow.io). Your agent can read and build databases, automations, dashboards and applications in one Baserow workspace, using only the tools you allow.
 
-This repo installs Baserow's MCP server and a short skill that teaches the agent how to use it. It works with Claude, ChatGPT, Codex, Cursor, VS Code, GitHub Copilot, Gemini CLI, OpenCode, Zed, Goose, Windsurf, Pi and other agents.
+This repo installs Baserow's MCP server and short skills that teach the agent how to use it: `baserow-basics` for rows and anything missing, `baserow-databases` for databases, tables, fields and views, `baserow-automations` for workflows, `baserow-dashboards` for dashboards, `baserow-app-builder` for application builders, and `baserow-workspace` for search, row comments and the audit log. It works with Claude, ChatGPT, Codex, Cursor, VS Code, GitHub Copilot, Gemini CLI, OpenCode, Zed, Goose, Windsurf, Pi and other agents.
 
 ## Server URL
 
@@ -18,7 +18,7 @@ npx add-mcp https://api.baserow.io/mcp -n baserow -g
 npx skills add baserow/baserow-mcp
 ```
 
-`add-mcp` finds the agents you have installed and asks which ones to add Baserow to. Untick Claude Desktop if it's listed and add Baserow there as a [custom connector](#claudeai-and-claude-desktop) instead. `skills add` copies the `baserow-basics` skill into your agents' skill folders. On self-hosted Baserow, run `skills add` too, since only the plugins below include the skill.
+`add-mcp` finds the agents you have installed and asks which ones to add Baserow to. Untick Claude Desktop if it's listed and add Baserow there as a [custom connector](#claudeai-and-claude-desktop) instead. `skills add` copies the skills into your agents' skill folders. On self-hosted Baserow, run `skills add` too, since only the plugins below include the skills.
 
 ## Self-hosted requirements
 
@@ -108,7 +108,16 @@ To add only the server, without the plugin:
 
 ## Signing in
 
-Your agent opens a Baserow page in your browser. Sign in, pick the workspace and tick the tools the agent may use. Read tools let the agent browse databases, tables and rows; write tools let it create, update and delete rows. Only the read tools are ticked on a first connection.
+Your agent opens a Baserow page in your browser. Sign in, pick the workspace and tick the tools the agent may use. The tools are grouped by what they do:
+
+- **Workspace**: search everything the user can see.
+- **Databases**: read databases, tables, fields, views, rows and row comments; create and change them, including view sorts, hidden fields and row colours, and post comments; delete rows, fields, views, filters and row colours.
+- **Automations**: read workflows and their nodes; create automations and workflows, change nodes, and publish or pause workflows; delete nodes.
+- **Dashboards**: read dashboards and widget figures; create dashboards and widgets and change them; delete widgets.
+- **Application builders**: read pages, data sources, elements and actions; create and change applications, pages, elements, actions, styles and themes, and set up login; delete table columns and menu items.
+- **Audit log**: read who did what in the workspace. Needs an advanced or enterprise licence and a workspace admin.
+
+The Read only preset is ticked on a first connection. It covers search and reading databases, dashboards and application builders, so turn on anything else you want the agent to use. Row comments, row colours and charts need a premium licence. Which tools you see depends on your Baserow version.
 
 Where the sign-in starts:
 
@@ -117,11 +126,13 @@ Where the sign-in starts:
 - Gemini CLI: `/mcp auth baserow`.
 - Claude.ai, ChatGPT, Cursor and VS Code: the Connect or Sign in button next to the server.
 
-To change the workspace or tools, sign in again: re-authenticate the server in your agent, or disconnect the app under My settings → MCP server in Baserow and connect again. A plain reconnect keeps the old sign-in.
+To change the tools, click Edit tools next to the app under My settings → MCP server in Baserow. The app gets the change on its next request, without signing in again. New tools stay off for existing connections until you turn them on here.
+
+To change the workspace, sign in again: re-authenticate the server in your agent, or disconnect the app under My settings → MCP server and connect again. A plain reconnect keeps the old sign-in. Do the same to change the tools on a version without Edit tools.
 
 ## Troubleshooting
 
-- **A tool is missing, or no databases are listed.** The connection only has the workspace and tools you picked at sign-in. Sign in again as described above. Tools that change tables or fields aren't available over MCP.
+- **A tool is missing, or no databases are listed.** The connection only has the workspace and tools you picked. Turn the tool on with Edit tools, or sign in again for another workspace, as described above. Your agent may need a new session to see the change.
 - **The sign-in never starts, or the client says the server doesn't support OAuth or client registration.** On self-hosted Baserow, check the [self-hosted requirements](#self-hosted-requirements).
 - **The connection fails with a URL you typed.** Copy the URL exactly as My settings → MCP server shows it. It ends in `/mcp`, with no trailing slash.
 - **Two Baserow servers in Claude Code.** If `claude mcp list` shows the plugin's `plugin:baserow:baserow` and a `baserow` server you added by hand, keep the one that connects. `claude plugin disable baserow@baserow` turns off the plugin's; `claude mcp remove baserow` removes yours.

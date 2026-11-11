@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Builds the ZIP uploaded to the OpenAI Platform (Plugins → Upload): the Agent
-# Plugins manifest, the MCP config, the skill and the logo. Nothing Claude-, Cursor-
+# Plugins manifest, the MCP config, the skills and the logo. Nothing Claude-, Cursor-
 # or Gemini-specific, and no tooling.
 set -euo pipefail
 cd "$(dirname "$0")/.."

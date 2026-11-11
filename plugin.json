@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "baserow",
   "version": "0.1.1",
-  "description": "Read and change Baserow tables from your AI agent through Baserow's MCP server.",
+  "description": "Read and build Baserow databases, automations, dashboards and applications from your AI agent through Baserow's MCP server.",
   "author": { "name": "Baserow", "url": "https://baserow.io" },
   "homepage": "https://baserow.io",
   "repository": "https://github.com/baserow/baserow-mcp",
@@ -18,8 +18,8 @@
     "com.openai": {
       "interface": {
         "displayName": "Baserow",
-        "shortDescription": "Read and change Baserow tables",
-        "longDescription": "Connect a Baserow workspace to read and change table data. Look up databases, tables and fields, search and list rows, and create, update or delete rows. You sign in with your Baserow account, pick one workspace and choose which tools the agent may use; only read tools are ticked by default. Works with baserow.io; for self-hosted Baserow, add your own server URL as a custom MCP server.",
+        "shortDescription": "Work with Baserow databases, automations and apps",
+        "longDescription": "Connect a Baserow workspace to read and change its data. Search the workspace, read and change rows and their comments, build databases, tables, fields and views, build and publish automation workflows, build dashboards and application builder pages, and read the audit log. You sign in with your Baserow account, pick one workspace and choose which tools the agent may use; only search and the read tools for databases, dashboards and application builders are ticked by default. Works with baserow.io; for self-hosted Baserow, add your own server URL as a custom MCP server.",
         "developerName": "Baserow",
         "category": "Productivity",
         "capabilities": [
