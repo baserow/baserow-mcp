@@ -22,7 +22,7 @@ npx skills add baserow/baserow-mcp
 
 ## Self-hosted requirements
 
-- A Baserow version newer than 2.4.1. Older versions don't have `/mcp` or sign-in; use an [endpoint key](#endpoint-keys) there.
+- Baserow 2.5.0 or newer. Older versions don't have `/mcp` or sign-in; use an [endpoint key](#endpoint-keys) there.
 - `BASEROW_MCP_OAUTH_ENABLED=true` on the backend. It's off by default.
 - A public HTTPS backend URL, so hosted apps like Claude.ai and ChatGPT can reach it, and outbound HTTPS from the backend, which fetches the apps' client metadata.
 - Your reverse proxy sends `/mcp` and paths under `/mcp/`, `/oauth/`, `/.well-known/oauth-authorization-server` and `/.well-known/oauth-protected-resource` to the backend. Match `/mcp` exactly, not as a prefix: the frontend serves the sign-in page at `/mcp-authorize/`.
@@ -139,7 +139,7 @@ To change the workspace, sign in again: re-authenticate the server in your agent
 
 ### Endpoint keys
 
-Baserow 2.4.1 and older only accept an endpoint key, and the plugin doesn't set this up. Copy the endpoint URL from My settings → MCP server. It ends in `/sse` and contains your key. Add it by hand to an agent that supports SSE servers, such as Claude Code, Cursor or VS Code; Codex and Goose don't:
+Baserow 2.4 and older only accept an endpoint key, and the plugin doesn't set this up. Copy the endpoint URL from My settings → MCP server. It ends in `/sse` and contains your key. Add it by hand to an agent that supports SSE servers, such as Claude Code, Cursor or VS Code; Codex and Goose don't:
 
 ```
 npx add-mcp "<endpoint url>" -t sse -n baserow -g -a claude-code

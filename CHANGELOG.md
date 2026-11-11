@@ -2,7 +2,10 @@
 
 Each release is tagged `v<version>`, matching the version in every manifest. Publishing a GitHub release for the tag publishes `server.json` to the MCP Registry.
 
-## Unreleased
+## 1.0.0 (unreleased)
+
+Needs Baserow 2.5.0 or newer.
+
 
 - New skills: `baserow-databases`, `baserow-automations`, `baserow-dashboards`, `baserow-app-builder` and `baserow-workspace`, for the database, automation, dashboard, application builder, search, row comment and audit log tools.
 - `baserow-basics` covers rows, the shared error format and undo, and tells users to turn missing tools on with Edit tools in Settings.
