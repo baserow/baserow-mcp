@@ -62,8 +62,7 @@ connections, and the "Read only" preset at sign-in only turns on search and the 
 tools for databases, dashboards and application builders. Ask the user to click Edit
 tools next to the app under My settings → MCP server, and turn on the group with the
 tool, such as "Edit databases" or "Read automations". The change applies without
-signing in again, though some agents need a new session to see it. If there's no Edit
-tools button, the user has to sign in again as above. With an endpoint key, tools can
-only be changed through the API.
+signing in again, though some agents need a new session to see it. With an endpoint
+key, tools can only be changed through the API.
 
 If no tool does what the user asks, say so and point them to Baserow.

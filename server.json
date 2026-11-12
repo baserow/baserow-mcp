@@ -3,7 +3,7 @@
   "name": "io.baserow/baserow",
   "title": "Baserow",
   "description": "Read and build Baserow databases, automations, dashboards and applications.",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "repository": {
     "url": "https://github.com/baserow/baserow-mcp",
     "source": "github"
@@ -35,7 +35,7 @@
       "url": "https://{baserow_host}/mcp",
       "variables": {
         "baserow_host": {
-          "description": "Your self-hosted Baserow backend host, for example baserow.example.com",
+          "description": "Your self-hosted Baserow 3.0.0 or newer backend host, for example baserow.example.com",
           "isRequired": true
         }
       }
