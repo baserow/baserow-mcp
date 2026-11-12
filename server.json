@@ -35,7 +35,7 @@
       "url": "https://{baserow_host}/mcp",
       "variables": {
         "baserow_host": {
-          "description": "Your self-hosted Baserow backend host, for example baserow.example.com",
+          "description": "Your self-hosted Baserow 3.0.0 or newer backend host, for example baserow.example.com",
           "isRequired": true
         }
       }

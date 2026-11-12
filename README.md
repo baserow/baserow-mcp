@@ -128,7 +128,7 @@ Where the sign-in starts:
 
 To change the tools, click Edit tools next to the app under My settings → MCP server in Baserow. The app gets the change on its next request, without signing in again. New tools stay off for existing connections until you turn them on here.
 
-To change the workspace, sign in again: re-authenticate the server in your agent, or disconnect the app under My settings → MCP server and connect again. A plain reconnect keeps the old sign-in. Do the same to change the tools on a version without Edit tools.
+To change the workspace, sign in again: re-authenticate the server in your agent, or disconnect the app under My settings → MCP server and connect again. A plain reconnect keeps the old sign-in.
 
 ## Troubleshooting
 
@@ -139,7 +139,7 @@ To change the workspace, sign in again: re-authenticate the server in your agent
 
 ### Endpoint keys
 
-Baserow versions before 3.0.0 only accept an endpoint key, and the plugin doesn't set this up. Copy the endpoint URL from My settings → MCP server. It ends in `/sse` and contains your key. Add it by hand to an agent that supports SSE servers, such as Claude Code, Cursor or VS Code; Codex and Goose don't:
+Without sign-in, on a Baserow version older than the [self-hosted requirements](#self-hosted-requirements) or with `BASEROW_MCP_OAUTH_ENABLED` off, use an endpoint key. The plugin doesn't set this up. Copy the endpoint URL from My settings → MCP server. It ends in `/sse` and contains your key. Add it by hand to an agent that supports SSE servers, such as Claude Code, Cursor or VS Code; Codex and Goose don't:
 
 ```
 npx add-mcp "<endpoint url>" -t sse -n baserow -g -a claude-code

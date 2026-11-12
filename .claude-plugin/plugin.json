@@ -11,7 +11,7 @@
     "mcp_url": {
       "type": "string",
       "title": "Baserow MCP URL",
-      "description": "Keep the default for baserow.io. For self-hosted Baserow, copy it from Settings → MCP server. It ends in /mcp.",
+      "description": "Keep the default for baserow.io. For self-hosted Baserow 3.0.0 or newer, copy it from My settings → MCP server. It ends in /mcp.",
       "default": "https://api.baserow.io/mcp"
     }
   },
