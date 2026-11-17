@@ -22,7 +22,7 @@ npx skills add baserow/baserow-mcp
 
 ## Self-hosted requirements
 
-- Baserow 3.0.0 or newer. Older versions don't have `/mcp` or sign-in; use an [endpoint key](#endpoint-keys) there.
+- Baserow 2.4.3 or newer. Older versions don't have `/mcp` or sign-in; use an [endpoint key](#endpoint-keys) there.
 - `BASEROW_MCP_OAUTH_ENABLED=true` on the backend. It's off by default.
 - A public HTTPS backend URL, so hosted apps like Claude.ai and ChatGPT can reach it, and outbound HTTPS from the backend, which fetches the apps' client metadata.
 - Your reverse proxy sends `/mcp` and paths under `/mcp/`, `/oauth/`, `/.well-known/oauth-authorization-server` and `/.well-known/oauth-protected-resource` to the backend. Match `/mcp` exactly, not as a prefix: the frontend serves the sign-in page at `/mcp-authorize/`.

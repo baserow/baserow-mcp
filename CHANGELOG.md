@@ -4,7 +4,7 @@ Each release is tagged `v<version>`, matching the version in every manifest. Pub
 
 ## 1.0.0 (unreleased)
 
-Needs Baserow 3.0.0 or newer.
+Needs Baserow 2.4.3 or newer.
 
 - New skills: `baserow-databases`, `baserow-automations`, `baserow-dashboards`, `baserow-app-builder` and `baserow-workspace`, for the database, automation, dashboard, application builder, search, row comment and audit log tools.
 - `baserow-basics` covers rows, the shared error format and undo, and tells users to turn missing tools on with Edit tools under My settings → MCP server.
