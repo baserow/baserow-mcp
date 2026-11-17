@@ -1,6 +1,6 @@
 {
   "name": "baserow",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "Read and build Baserow databases, automations, dashboards and applications from your AI agent through Baserow's MCP server.",
   "contextFileName": "GEMINI.md",
   "mcpServers": {
