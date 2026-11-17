@@ -2,7 +2,7 @@
 
 Each release is tagged `v<version>`, matching the version in every manifest. Publishing a GitHub release for the tag publishes `server.json` to the MCP Registry.
 
-## 1.0.0 (unreleased)
+## 1.0.0 (2026-11-17)
 
 Needs Baserow 2.4.3 or newer.
 
